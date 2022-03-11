@@ -1,5 +1,7 @@
 # Clion IDE
 .idea/
+# Visual Studio
+.vs/
 # CMake
 cmake-build-*/
 build*/
