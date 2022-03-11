@@ -13,16 +13,6 @@
 
 #include "caterva_utils.h"
 
-#ifdef WIN32
-#ifndef malloca
-#define malloca(x) _malloca(x)
-#endif
-#ifndef freea
-#define freea(x) _freea(x)
-#endif
-#endif
-
-
 int caterva_ctx_new(caterva_config_t *cfg, caterva_ctx_t **ctx) {
     CATERVA_ERROR_NULL(cfg);
     CATERVA_ERROR_NULL(ctx);
@@ -478,7 +468,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
 
     int32_t data_nbytes = array->extchunknitems * array->itemsize;
-    uint8_t *data = malloca(data_nbytes);
+    uint8_t *data = malloc(data_nbytes);
 
     int64_t chunks_in_array[CATERVA_MAX_DIM] = {0};
     for (int i = 0; i < ndim; ++i) {
@@ -675,7 +665,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         }
     }
 
-    freea(data);
+    free(data);
 
     return CATERVA_SUCCEED;
 }
@@ -717,10 +707,10 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
 
     int32_t data_nbytes = array->extchunknitems * array->itemsize;
-    uint8_t *data = malloca(data_nbytes);
+    uint8_t *data = malloc(data_nbytes);
 
     int32_t chunk_nbytes = data_nbytes + BLOSC_MAX_OVERHEAD;
-    uint8_t *chunk = malloca(chunk_nbytes);
+    uint8_t *chunk = malloc(chunk_nbytes);
 
     int64_t chunks_in_array[CATERVA_MAX_DIM] = {0};
     for (int i = 0; i < ndim; ++i) {
@@ -904,8 +894,8 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         }
     }
 
-    freea(chunk);
-    freea(data);
+    free(chunk);
+    free(data);
 
     return CATERVA_SUCCEED;
 }
