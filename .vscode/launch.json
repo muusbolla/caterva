@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "caterva_test_roundtrip",
+            "program": "${workspaceFolder}/build/tests/caterva_test_roundtrip",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "caterva_bench_get_slice",
+            "program": "${workspaceFolder}/build/bench/caterva_bench_get_slice",
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

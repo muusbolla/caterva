@@ -16,7 +16,7 @@
 int main() {
     blosc_timestamp_t t0, t1;
 
-    int nslices = 10;
+    int nslices = 100;
 
     int8_t ndim = 3;
     uint8_t itemsize = sizeof(DATA_TYPE);
