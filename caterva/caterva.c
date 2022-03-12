@@ -531,9 +531,21 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         }
 
         int64_t nblocks = array->extchunknitems / array->blocknitems;
-        bool *block_maskout = ctx->cfg->alloc(nblocks);
+        int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
+        int nmaskoutelems = nmaskoutbits / 64;
+        uint64_t *block_maskout = ctx->cfg->alloc(nmaskoutelems * 8);
         CATERVA_ERROR_NULL(block_maskout);
+        uint64_t maskVal = 0;
+        int64_t maskout_offset = 0;
+        int64_t maskout_index = 0;
         for (int nblock = 0; nblock < nblocks; ++nblock) {
+            if (maskout_offset == 64) {
+                block_maskout[maskout_index] = maskVal;
+                maskout_offset = 0;
+                maskVal = 0;
+                ++maskout_index;
+            }
+
             int64_t nblock_ndim[CATERVA_MAX_DIM] = {0};
             index_unidim_to_multidim(ndim, blocks_in_chunk, nblock, nblock_ndim);
 
@@ -554,14 +566,17 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                 }
             }
 
-            bool block_empty = false;
+            uint64_t block_empty = 0;
             for (int i = 0; i < ndim; ++i) {
-                block_empty |= (block_stop[i] <= start[i] || block_start[i] >= stop[i]);
+                block_empty |= (block_stop[i] <= start[i]) | (block_start[i] >= stop[i]);
             }
-            block_maskout[nblock] = block_empty ? true : false;
+            maskVal |= block_empty << maskout_offset;
+            ++maskout_offset;
         }
 
-        if (blosc2_set_maskout(array->sc->dctx, block_maskout, nblocks) !=
+        block_maskout[maskout_index] = maskVal;
+
+        if (blosc2_set_maskout_bitmask(array->sc->dctx, block_maskout, nblocks) !=
             BLOSC2_ERROR_SUCCESS) {
             CATERVA_TRACE_ERROR("Error setting the maskout");
             CATERVA_ERROR(CATERVA_ERR_BLOSC_FAILED);
