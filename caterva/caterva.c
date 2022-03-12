@@ -588,11 +588,15 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             CATERVA_ERROR(CATERVA_ERR_BLOSC_FAILED);
         }
 
-        ctx->cfg->free(block_maskout);
-
         // Iterate over blocks
 
         for (int nblock = 0; nblock < nblocks; ++nblock) {
+
+            // skip known empty blocks
+            if (block_maskout[nblock / 64] & (1ULL << (nblock % 64))) {
+                continue;
+            }
+
             int64_t nblock_ndim[CATERVA_MAX_DIM] = {0};
             index_unidim_to_multidim(ndim, blocks_in_chunk, nblock, nblock_ndim);
 
@@ -615,13 +619,6 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             int64_t block_shape[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
                 block_shape[i] = block_stop[i] - block_start[i];
-            }
-            bool block_empty = false;
-            for (int i = 0; i < ndim; ++i) {
-                block_empty |= (block_stop[i] <= start[i] || block_start[i] >= stop[i]);
-            }
-            if (block_empty) {
-                continue;
             }
 
             // compute the start of the slice inside the block
@@ -676,6 +673,8 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             caterva_copy_buffer(ndim, array->itemsize, dst, dst_pad_shape, dst_start, dst_stop,
                                 src, src_pad_shape, src_start);
         }
+
+        ctx->cfg->free(block_maskout);
     }
 
     free(data);
