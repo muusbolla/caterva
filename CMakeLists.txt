@@ -38,6 +38,7 @@ else()
     add_compile_options(-Wall -Wextra)
 endif()
 
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_C_FLAGS}")
 if(CATERVA_ENABLE_ASAN)
     message(STATUS "Enable sanitizers")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Os -fno-omit-frame-pointer -fsanitize=address")
