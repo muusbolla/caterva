@@ -450,7 +450,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         CATERVA_TRACE_ERROR("buffersize is < 0");
         CATERVA_ERROR(CATERVA_ERR_INVALID_ARGUMENT);
     }
-
+    uint64_t stack_maskout[16]; // 1Kbit of maskout space should allow us to avoid dynamic allocation most of the time
     uint8_t *buffer_b = (uint8_t *) buffer;
     int64_t *buffer_start = start;
     int64_t *buffer_stop = stop;
@@ -503,6 +503,17 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         update_nchunks *= update_shape[i];
     }
 
+    int64_t nblocks = array->extchunknitems / array->blocknitems;
+    uint64_t *block_maskout;
+    if (nblocks <= 1024) {  // in most cases we won't need to dynamically allocate
+        block_maskout = stack_maskout;
+    } else {
+        int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
+        int nmaskoutelems = nmaskoutbits / 64;
+        uint64_t *block_maskout = ctx->cfg->alloc(nmaskoutelems * 8);
+        CATERVA_ERROR_NULL(block_maskout);
+    }
+
     for (int update_nchunk = 0; update_nchunk < update_nchunks; ++update_nchunk) {
         int64_t nchunk_ndim[CATERVA_MAX_DIM] = {0};
         index_unidim_to_multidim(ndim, update_shape, update_nchunk, nchunk_ndim);
@@ -530,11 +541,6 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             continue;
         }
 
-        int64_t nblocks = array->extchunknitems / array->blocknitems;
-        int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
-        int nmaskoutelems = nmaskoutbits / 64;
-        uint64_t *block_maskout = ctx->cfg->alloc(nmaskoutelems * 8);
-        CATERVA_ERROR_NULL(block_maskout);
         uint64_t maskVal = 0;
         int64_t maskout_offset = 0;
         int64_t maskout_index = 0;
@@ -673,7 +679,8 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             caterva_copy_buffer(ndim, array->itemsize, dst, dst_pad_shape, dst_start, dst_stop,
                                 src, src_pad_shape, src_start);
         }
-
+    }
+    if (nblocks > 1024) {
         ctx->cfg->free(block_maskout);
     }
 
