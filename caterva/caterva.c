@@ -832,16 +832,18 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                     block_stop[i] = chunk_stop[i];
                 }
             }
-            int64_t block_shape[CATERVA_MAX_DIM] = {0};
-            for (int i = 0; i < ndim; ++i) {
-                block_shape[i] = block_stop[i] - block_start[i];
-            }
+
             bool block_empty = false;
             for (int i = 0; i < ndim; ++i) {
-                block_empty |= (block_stop[i] <= start[i] || block_start[i] >= stop[i]);
+                block_empty |= (block_stop[i] <= start[i]) | (block_start[i] >= stop[i]);
             }
             if (block_empty) {
                 continue;
+            }
+
+            int64_t block_shape[CATERVA_MAX_DIM] = {0};
+            for (int i = 0; i < ndim; ++i) {
+                block_shape[i] = block_stop[i] - block_start[i];
             }
 
             // compute the start of the slice inside the block
