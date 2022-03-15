@@ -1,0 +1,49 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "clang-linux-debug",
+            "displayName": "Clang-Linux Debug",
+            "generator": "Ninja",
+            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+                "EXTRA_C_FLAGS": "-march=native",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "BOOL",
+                    "value": "True"
+                }
+            }
+        },
+        {
+            "name": "clang-linux-release",
+            "displayName": "Clang-Linux Release",
+            "generator": "Ninja",
+            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+                "EXTRA_C_FLAGS": "-march=native",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "BOOL",
+                    "value": "True"
+                }
+            }
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "clang-linux-debug-test",
+            "description": "",
+            "displayName": "",
+            "configurePreset": "clang-linux-debug"
+        }
+    ]
+}
