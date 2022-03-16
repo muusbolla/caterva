@@ -438,6 +438,12 @@ int caterva_to_buffer(caterva_ctx_t *ctx, caterva_array_t *array, void *buffer,
     return CATERVA_SUCCEED;
 }
 
+// round up num to the nearest multiple of factor
+int64_t round_up(int64_t num, int64_t factor)
+{
+    return num + factor - 1 - (num + factor - 1) % factor; // https://stackoverflow.com/a/4073700
+}
+
 // Only for internal use: It is used for getting slices.
 int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize, int64_t *start,
                         int64_t *stop, int64_t *shape, caterva_array_t *array) {
@@ -491,15 +497,12 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
     int64_t update_nchunks = 1;
     for (int i = 0; i < ndim; ++i) {
-        int64_t pos = 0;
-        while (pos <= buffer_start[i]) {
-            pos += array->chunkshape[i];
-        }
+        int64_t pos = round_up(buffer_start[i], array->chunkshape[i]);
         update_start[i] = pos / array->chunkshape[i] - 1;
-        while (pos < buffer_stop[i]) {
-            pos += array->chunkshape[i];
-        }
+
+        pos = round_up(buffer_stop[i], array->chunkshape[i]);
         update_shape[i] = pos / array->chunkshape[i] - update_start[i];
+
         update_nchunks *= update_shape[i];
     }
 
@@ -751,15 +754,12 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
     int64_t update_nchunks = 1;
     for (int i = 0; i < ndim; ++i) {
-        int64_t pos = 0;
-        while (pos <= buffer_start[i]) {
-            pos += array->chunkshape[i];
-        }
+        int64_t pos = round_up(buffer_start[i], array->chunkshape[i]);
         update_start[i] = pos / array->chunkshape[i] - 1;
-        while (pos < buffer_stop[i]) {
-            pos += array->chunkshape[i];
-        }
+
+        pos = round_up(buffer_stop[i], array->chunkshape[i]);
         update_shape[i] = pos / array->chunkshape[i] - update_start[i];
+
         update_nchunks *= update_shape[i];
     }
 
