@@ -14,7 +14,7 @@
 # include <caterva.h>
 
 int main() {
-    blosc_timestamp_t t0, t1;
+    blosc_timestamp_t t0, t1, t2;
 
     int nslices = 100;
 
@@ -55,6 +55,8 @@ int main() {
         storage.blockshape[i] = blockshape[i];
     }
 
+    srand(1234); // produce predictable output for benchmark comparison
+
     caterva_array_t *arr;
     blosc_set_timestamp(&t0);
     CATERVA_ERROR(caterva_from_buffer(ctx, src, nbytes, &params, &storage, &arr));
@@ -62,6 +64,7 @@ int main() {
     printf("from_buffer: %.4f s\n", blosc_elapsed_secs(t0, t1));
 
     blosc_set_timestamp(&t0);
+    blosc_set_timestamp(&t1);
 
     for (int dim = 0; dim < ndim; ++dim) {
         int64_t slice_start[CATERVA_MAX_DIM], slice_stop[CATERVA_MAX_DIM], slice_shape[CATERVA_MAX_DIM];
@@ -81,10 +84,12 @@ int main() {
             CATERVA_ERROR(caterva_get_slice_buffer(ctx, arr, slice_start, slice_stop, buffer, slice_shape, buffersize));
         }
         free(buffer);
+        blosc_set_timestamp(&t2);
+        printf("get_slice dim %d: %.4f s\n", dim, blosc_elapsed_secs(t1, t2));
+        t1 = t2;
     }
 
-    blosc_set_timestamp(&t1);
-    printf("get_slice: %.4f s\n", blosc_elapsed_secs(t0, t1));
+    printf("get_slice total: %.4f s\n", blosc_elapsed_secs(t0, t1));
 
     free(src);
 
