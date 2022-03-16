@@ -438,6 +438,10 @@ int caterva_to_buffer(caterva_ctx_t *ctx, caterva_array_t *array, void *buffer,
     return CATERVA_SUCCEED;
 }
 
+// 1Kbit of maskout space should allow us to avoid dynamic allocation most of the time
+// must be a multiple of 64
+#define STACK_MASKOUT_BITS 1024 
+
 // Only for internal use: It is used for getting slices.
 int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize, int64_t *start,
                         int64_t *stop, int64_t *shape, caterva_array_t *array) {
@@ -450,7 +454,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         CATERVA_TRACE_ERROR("buffersize is < 0");
         CATERVA_ERROR(CATERVA_ERR_INVALID_ARGUMENT);
     }
-    uint64_t stack_maskout[16]; // 1Kbit of maskout space should allow us to avoid dynamic allocation most of the time
+    uint64_t stack_maskout[STACK_MASKOUT_BITS / 64];
     uint8_t *buffer_b = (uint8_t *) buffer;
     int64_t *buffer_start = start;
     int64_t *buffer_stop = stop;
@@ -504,7 +508,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
     int64_t nblocks = array->extchunknitems / array->blocknitems;
     uint64_t *block_maskout;
-    if (nblocks <= 1024) {  // in most cases we won't need to dynamically allocate
+    if (nblocks <= STACK_MASKOUT_BITS) {  // in most cases we won't need to dynamically allocate
         block_maskout = stack_maskout;
     } else {
         int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
@@ -679,7 +683,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                                 src, src_pad_shape, src_start);
         }
     }
-    if (nblocks > 1024) {
+    if (nblocks > STACK_MASKOUT_BITS) {
         ctx->cfg->free(block_maskout);
     }
 
