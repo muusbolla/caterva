@@ -36,6 +36,24 @@
                     "value": "True"
                 }
             }
+        },
+        {
+            "name": "clang-linux-relwithdebinfo",
+            "displayName": "Clang-Linux Release with Debug Info",
+            "generator": "Ninja",
+            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/clang",
+                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+                "EXTRA_C_FLAGS": "-march=native",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": {
+                    "type": "BOOL",
+                    "value": "True"
+                }
+            }
         }
     ],
     "testPresets": [

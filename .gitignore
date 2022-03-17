@@ -4,9 +4,11 @@
 .vs/
 # VS Code
 .cache/
+.vscode/
 # CMake
 cmake-build-*/
 build*/
+compile_commands.json
 # macOS
 .DS_Store
 # Caterva

@@ -43,6 +43,7 @@ if(CATERVA_ENABLE_ASAN)
     message(STATUS "Enable sanitizers")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Os -fno-omit-frame-pointer -fsanitize=address")
 endif()
+set(CMAKE_C_FLAGS_RELEASE "-O2")
 
 if(CATERVA_ENABLE_COVERAGE)
     message(STATUS "Coverage is enabled")
@@ -143,3 +144,9 @@ if(CATERVA_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+add_custom_target(
+    copy-compile-commands ALL
+    ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_CURRENT_LIST_DIR}
+    )
