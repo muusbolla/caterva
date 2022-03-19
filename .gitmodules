@@ -1,3 +1,4 @@
 [submodule "contribs/c-blosc2"]
 	path = contribs/c-blosc2
 	url = https://github.com/muusbolla/c-blosc2.git
+	branch = muusbolla_dev
