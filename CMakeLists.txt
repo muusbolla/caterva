@@ -16,6 +16,7 @@ cmake_policy(SET CMP0077 NEW)
 project(caterva VERSION 0.3.3 LANGUAGES C)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(CATERVA_SHARED_LIB "Create shared library" ON)
 option(CATERVA_STATIC_LIB "Create static library" ON)
