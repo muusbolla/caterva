@@ -1,61 +1,130 @@
 {
     "version": 2,
-    "configurePresets": [
-        {
-            "name": "clang-linux-debug",
-            "displayName": "Clang-Linux Debug",
-            "generator": "Ninja",
-            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "/usr/bin/clang",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
-                "EXTRA_C_FLAGS": "-march=native",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": {
-                    "type": "BOOL",
-                    "value": "True"
-                }
-            }
-        },
-        {
-            "name": "clang-linux-release",
-            "displayName": "Clang-Linux Release",
-            "generator": "Ninja",
-            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "/usr/bin/clang",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
-                "EXTRA_C_FLAGS": "-march=native",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": {
-                    "type": "BOOL",
-                    "value": "True"
-                }
-            }
-        },
-        {
-            "name": "clang-linux-relwithdebinfo",
-            "displayName": "Clang-Linux Release with Debug Info",
-            "generator": "Ninja",
-            "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
-                "CMAKE_C_COMPILER": "/usr/bin/clang",
-                "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
-                "EXTRA_C_FLAGS": "-march=native",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": {
-                    "type": "BOOL",
-                    "value": "True"
-                }
-            }
+  "configurePresets": [
+    {
+      "name": "clang-linux-debug",
+      "displayName": "Clang-Linux Debug",
+      "generator": "Ninja",
+      "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "EXTRA_C_FLAGS": "-march=native",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
         }
-    ],
+      }
+    },
+    {
+      "name": "clang-linux-release",
+      "displayName": "Clang-Linux Release",
+      "generator": "Ninja",
+      "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "EXTRA_C_FLAGS": "-march=native",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
+        }
+      }
+    },
+    {
+      "name": "clang-linux-relwithdebinfo",
+      "displayName": "Clang-Linux Release with Debug Info",
+      "generator": "Ninja",
+      "description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++",
+        "EXTRA_C_FLAGS": "-march=native",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
+        }
+      }
+    },
+    {
+      "name": "clang-win-debug",
+      "displayName": "Clang-Win Debug",
+      "generator": "Ninja",
+      "description": "Using compilers: C = clang-cl.exe, CXX = clang-cl.exe",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "EXTRA_C_FLAGS": "-march=native /U__PRFCHW__",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
+        }
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    },
+    {
+      "name": "clang-win-release",
+      "displayName": "Clang-Win Release",
+      "generator": "Ninja",
+      "description": "Using compilers: C = clang-cl.exe, CXX = clang-cl.exe",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "EXTRA_C_FLAGS": "-march=native /U__PRFCHW__",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
+        }
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    },
+    {
+      "name": "clang-win-relwithdebinfo",
+      "displayName": "Clang-Win Release with Debug Info",
+      "generator": "Ninja",
+      "description": "Using compilers: C = clang-cl.exe, CXX = clang-cl.exe",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+        "CMAKE_C_COMPILER": "clang-cl.exe",
+        "CMAKE_CXX_COMPILER": "clang-cl.exe",
+        "EXTRA_C_FLAGS": "-march=native /U__PRFCHW__",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": {
+          "type": "BOOL",
+          "value": "True"
+        }
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
+      }
+    }
+  ],
     "testPresets": [
         {
             "name": "clang-linux-debug-test",
