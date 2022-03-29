@@ -398,6 +398,7 @@ int caterva_from_serial_schunk(caterva_ctx_t *ctx, uint8_t *serial_schunk, int64
  * @return An error code.
  */
 int caterva_open(caterva_ctx_t *ctx, const char *urlpath, caterva_array_t **array);
+int caterva_open_udio(caterva_ctx_t *ctx, const char *urlpath, caterva_array_t **array, const blosc2_io *udio);
 
 /**
  * @brief Save caterva array into a specific urlpath.

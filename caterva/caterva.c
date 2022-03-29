@@ -361,11 +361,16 @@ int caterva_from_serial_schunk(caterva_ctx_t *ctx, uint8_t *serial_schunk, int64
 }
 
 int caterva_open(caterva_ctx_t *ctx, const char *urlpath, caterva_array_t **array) {
+    return caterva_open_udio(ctx, urlpath, array, &BLOSC2_IO_DEFAULTS);
+}
+
+int caterva_open_udio(caterva_ctx_t *ctx, const char *urlpath, caterva_array_t **array, const blosc2_io *udio) {
     CATERVA_ERROR_NULL(ctx);
     CATERVA_ERROR_NULL(urlpath);
     CATERVA_ERROR_NULL(array);
 
-    blosc2_schunk *sc = blosc2_schunk_open(urlpath);
+    blosc2_schunk *sc = blosc2_schunk_open_udio(urlpath, udio);
+    
 
     // ...and create a caterva array out of it
     CATERVA_ERROR(caterva_from_schunk(ctx, sc, array));
