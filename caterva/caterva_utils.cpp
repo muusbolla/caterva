@@ -377,67 +377,34 @@ int caterva_copy_buffer(uint8_t ndim,
                         int64_t *src_start, int64_t *src_stop,
                         void *dst, int64_t *dst_pad_shape,
                         int64_t *dst_start) {
-    // Compute the shape of the copy
-    int64_t copy_shape[CATERVA_MAX_DIM] = {0};
-    for (int i = 0; i < ndim; ++i) {
-        copy_shape[i] = src_stop[i] - src_start[i];
-        if(copy_shape[i] == 0) {
-            return CATERVA_SUCCEED;
-        }
-    }
-
-    // Compute the strides
-    int64_t src_strides[CATERVA_MAX_DIM];
-    src_strides[ndim - 1] = 1;
-    for (int i = ndim - 2; i >= 0; --i) {
-        src_strides[i] = src_strides[i + 1] * src_pad_shape[i + 1];
-    }
-
-    int64_t dst_strides[CATERVA_MAX_DIM];
-    dst_strides[ndim - 1] = 1;
-    for (int i = ndim - 2; i >= 0; --i) {
-        dst_strides[i] = dst_strides[i + 1] * dst_pad_shape[i + 1];
-    }
-
-    // Align the buffers removing unnecessary data
-    int64_t src_start_n;
-    index_multidim_to_unidim(src_start, ndim, src_strides, &src_start_n);
-    uint8_t *bsrc = (uint8_t *) src;
-    bsrc = &bsrc[src_start_n * itemsize];
-
-    int64_t dst_start_n;
-    index_multidim_to_unidim(dst_start, ndim, dst_strides, &dst_start_n);
-    uint8_t *bdst = (uint8_t *) dst;
-    bdst = &bdst[dst_start_n * itemsize];
-
 switch(ndim) {
     case 1:
-        memcpy(&bdst[0], &bsrc[0], copy_shape[0] * itemsize);
+        caterva_copy_buffer<1>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 2:
-        copy2dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<2>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 3:
-        copy3dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<3>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 4:
-        copy4dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<4>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 5:
-        copy5dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<5>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 6:
-        copy6dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<6>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 7:
-        copy7dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<7>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     case 8:
-        copy8dim(itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        caterva_copy_buffer<8>(itemsize, src, src_pad_shape, src_start, src_stop, dst, dst_pad_shape, dst_start);
     break;
     default:
         // guard against potential future increase to CATERVA_MAX_DIM
-        copy_ndim_fallback(ndim, itemsize, copy_shape, bsrc, src_strides, bdst, dst_strides);
+        return CATERVA_ERR_INVALID_INDEX;
     break;
     }
     
