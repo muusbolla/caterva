@@ -9,14 +9,12 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 
-
 #include "test_common.h"
-
 
 uint64_t result0[1024] = {0};
 uint64_t result1[1024] = {2, 3, 4, 5, 6, 7, 8};
 uint64_t result2[1024] = {53, 54, 55, 56, 57, 58, 59, 63, 64, 65, 66, 67, 68, 69, 73, 74, 75, 76,
-                          77, 78, 79, 83, 84, 85, 86, 87, 88, 89};
+                        77, 78, 79, 83, 84, 85, 86, 87, 88, 89};
 uint64_t result3[1024] = {303, 304, 305, 306, 307, 308, 309, 313, 314, 315, 316, 317, 318, 319,
                         323, 324, 325, 326, 327, 328, 329, 333, 334, 335, 336, 337, 338, 339,
                         343, 344, 345, 346, 347, 348, 349, 353, 354, 355, 356, 357, 358, 359,
@@ -44,20 +42,26 @@ typedef struct {
 } test_shapes_t;
 
 
-CUTEST_TEST_DATA(get_slice_buffer) {
+CUTEST_TEST_DATA(get_slice) {
     caterva_ctx_t *ctx;
 };
 
 
-CUTEST_TEST_SETUP(get_slice_buffer) {
+CUTEST_TEST_SETUP(get_slice) {
     caterva_config_t cfg = CATERVA_CONFIG_DEFAULTS;
-    cfg.nthreads = 1;
+    cfg.nthreads = 2;
     cfg.compcodec = BLOSC_BLOSCLZ;
     caterva_ctx_new(&cfg, &data->ctx);
 
     // Add parametrizations
     CUTEST_PARAMETRIZE(itemsize, uint8_t, CUTEST_DATA(8));
     CUTEST_PARAMETRIZE(backend, _test_backend, CUTEST_DATA(
+            {false, false},
+            {true, false},
+            {true, true},
+            {false, true},
+    ));
+    CUTEST_PARAMETRIZE(backend2, _test_backend, CUTEST_DATA(
             {false, false},
             {true, false},
             {true, true},
@@ -74,13 +78,17 @@ CUTEST_TEST_SETUP(get_slice_buffer) {
     ));
 }
 
-CUTEST_TEST_TEST(get_slice_buffer) {
+CUTEST_TEST_TEST(get_slice) {
     CUTEST_GET_PARAMETER(backend, _test_backend);
     CUTEST_GET_PARAMETER(shapes, test_shapes_t);
+    CUTEST_GET_PARAMETER(backend2, _test_backend);
     CUTEST_GET_PARAMETER(itemsize, uint8_t);
 
-    char *urlpath = "test_get_slice_buffer.b2frame";
+    char* urlpath = "test_get_slice.b2frame";
+    char* urlpath2 = "test_get_slice2.b2frame";
+
     caterva_remove(data->ctx, urlpath);
+    caterva_remove(data->ctx, urlpath2);
 
     caterva_params_t params;
     params.itemsize = itemsize;
@@ -104,8 +112,7 @@ CUTEST_TEST_TEST(get_slice_buffer) {
     for (int i = 0; i < params.ndim; ++i) {
         buffersize *= (size_t) shapes.shape[i];
     }
-    uint8_t *buffer = data->ctx->cfg->alloc(buffersize);
-
+    uint8_t *buffer = (uint8_t*)data->ctx->cfg->alloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, buffersize / itemsize));
 
     /* Create caterva_array_t with original data */
@@ -113,41 +120,69 @@ CUTEST_TEST_TEST(get_slice_buffer) {
     CATERVA_TEST_ASSERT(caterva_from_buffer(data->ctx, buffer, buffersize, &params, &storage,
                                             &src));
 
-    /* Create dest buffer */
-    int64_t destshape[CATERVA_MAX_DIM] = {0};
-    int64_t destbuffersize = itemsize;
+    /* Add vlmeta */
+
+    caterva_metalayer_t vlmeta;
+    vlmeta.name = "test_get_slice";
+    double sdata = 2.3;
+    vlmeta.sdata = (uint8_t *) &sdata;
+    vlmeta.size = sizeof(double);
+
+    CATERVA_TEST_ASSERT(caterva_vlmeta_add(data->ctx, src, &vlmeta));
+
+    /* Create storage for dest container */
+
+    caterva_storage_t storage2 = {0};
+    if (backend2.persistent) {
+        storage2.urlpath = urlpath2;
+    }
+    storage2.sequencial = backend2.sequential;
     for (int i = 0; i < params.ndim; ++i) {
-        destshape[i] = shapes.stop[i] - shapes.start[i];
-        destbuffersize *= destshape[i];
+        storage2.chunkshape[i] = shapes.chunkshape2[i];
+        storage2.blockshape[i] = shapes.blockshape2[i];
     }
 
-    uint64_t *destbuffer = data->ctx->cfg->alloc((size_t) destbuffersize);
+    caterva_array_t *dest;
+    CATERVA_TEST_ASSERT(caterva_get_slice(data->ctx, src, shapes.start, shapes.stop,
+                                          &storage2, &dest));
 
-    /* Fill dest buffer with a slice*/
-    CATERVA_TEST_ASSERT(caterva_get_slice_buffer(data->ctx, src, shapes.start, shapes.stop,
-                                                 destbuffer,
-                                                 destshape, destbuffersize));
+    /* Check metalayers */
 
+    bool exists;
+    CATERVA_TEST_ASSERT(caterva_meta_exists(data->ctx, dest, "caterva", &exists));
+    CUTEST_ASSERT("metalayer not exists", exists == true);
+    CATERVA_TEST_ASSERT(caterva_vlmeta_exists(data->ctx, dest, vlmeta.name, &exists));
+    CUTEST_ASSERT("vlmetalayer not exists", exists == false);
+
+    int64_t destbuffersize = itemsize;
+    for (int i = 0; i < src->ndim; ++i) {
+        destbuffersize *= (shapes.stop[i] - shapes.start[i]);
+    }
+
+    uint64_t *buffer_dest = (uint64_t*)data->ctx->cfg->alloc((size_t) destbuffersize);
+    CATERVA_TEST_ASSERT(caterva_to_buffer(data->ctx, dest, buffer_dest, destbuffersize));
 
     for (int i = 0; i < destbuffersize / itemsize; ++i) {
-        uint64_t a = destbuffer[i];
-        uint64_t b = shapes.result[i] + 1;
+        uint64_t a = shapes.result[i] + 1;
+        uint64_t b = buffer_dest[i];
         CUTEST_ASSERT("Elements are not equals!", a == b);
     }
 
     /* Free mallocs */
     data->ctx->cfg->free(buffer);
-    data->ctx->cfg->free(destbuffer);
+    data->ctx->cfg->free(buffer_dest);
     CATERVA_TEST_ASSERT(caterva_free(data->ctx, &src));
+    CATERVA_TEST_ASSERT(caterva_free(data->ctx, &dest));
     caterva_remove(data->ctx, urlpath);
+    caterva_remove(data->ctx, urlpath2);
 
     return 0;
 }
 
-CUTEST_TEST_TEARDOWN(get_slice_buffer) {
+CUTEST_TEST_TEARDOWN(get_slice) {
     caterva_ctx_free(&data->ctx);
 }
 
 int main() {
-    CUTEST_TEST_RUN(get_slice_buffer);
+    CUTEST_TEST_RUN(get_slice);
 }

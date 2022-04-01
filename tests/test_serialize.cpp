@@ -64,7 +64,7 @@ CUTEST_TEST_TEST(serialize) {
     }
 
 
-    uint8_t *buffer = malloc(buffersize);
+    uint8_t *buffer = (uint8_t*)malloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, buffersize / itemsize));
 
     /* Create caterva_array_t with original data */
@@ -82,7 +82,7 @@ CUTEST_TEST_TEST(serialize) {
     caterva_from_serial_schunk(data->ctx, sframe, slen, &dest);
 
     /* Fill dest array with caterva_array_t data */
-    uint8_t *buffer_dest = malloc(buffersize);
+    uint8_t *buffer_dest = (uint8_t*)malloc(buffersize);
     CATERVA_TEST_ASSERT(caterva_to_buffer(data->ctx, dest, buffer_dest, buffersize));
 
     /* Testing */

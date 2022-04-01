@@ -266,7 +266,7 @@ int caterva_full(caterva_ctx_t *ctx, caterva_params_t *params,
     }
 
     int32_t chunksize = BLOSC_EXTENDED_HEADER_LENGTH + (*array)->itemsize;
-    uint8_t *chunk = malloc(chunksize);
+    uint8_t *chunk = (uint8_t*)malloc(chunksize);
     if (blosc2_chunk_repeatval(*cparams, chunkbytes, chunk, chunksize, fill_value) < 0) {
         CATERVA_ERROR(CATERVA_ERR_BLOSC_FAILED);
     }
@@ -304,9 +304,9 @@ int caterva_from_schunk(caterva_ctx_t *ctx, blosc2_schunk *schunk, caterva_array
     uint8_t itemsize = (int8_t) cparams->typesize;
     free(cparams);
 
-    caterva_params_t params = {0};
+    caterva_params_t params{};
     params.itemsize = itemsize;
-    caterva_storage_t storage = {0};
+    caterva_storage_t storage{};
     storage.urlpath = schunk->storage->urlpath;
     storage.sequencial = schunk->storage->contiguous;
 
@@ -476,7 +476,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
 
     int32_t data_nbytes = array->extchunknitems * array->itemsize;
-    uint8_t *data = malloc(data_nbytes);
+    uint8_t *data = (uint8_t*)malloc(data_nbytes);
 
     int64_t chunks_in_array[CATERVA_MAX_DIM] = {0};
     for (int i = 0; i < ndim; ++i) {
@@ -518,7 +518,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     } else {
         int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
         int nmaskoutelems = nmaskoutbits / 64;
-        uint64_t *block_maskout = ctx->cfg->alloc(nmaskoutelems * 8);
+        uint64_t *block_maskout = (uint64_t*)ctx->cfg->alloc(nmaskoutelems * 8);
         CATERVA_ERROR_NULL(block_maskout);
     }
 
@@ -720,7 +720,7 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     // 0-dim case
     if (ndim == 0) {
         uint32_t chunk_size = array->itemsize + BLOSC_MAX_OVERHEAD;
-        uint8_t *chunk = malloc(chunk_size);
+        uint8_t *chunk = (uint8_t*)malloc(chunk_size);
         if (blosc2_compress_ctx(array->sc->cctx, buffer_b, array->itemsize, chunk, chunk_size) < 0) {
             CATERVA_ERROR(CATERVA_ERR_BLOSC_FAILED);
         }
@@ -732,10 +732,10 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
 
     int32_t data_nbytes = array->extchunknitems * array->itemsize;
-    uint8_t *data = malloc(data_nbytes);
+    uint8_t *data = (uint8_t*)malloc(data_nbytes);
 
     int32_t chunk_nbytes = data_nbytes + BLOSC_MAX_OVERHEAD;
-    uint8_t *chunk = malloc(chunk_nbytes);
+    uint8_t *chunk = (uint8_t*)malloc(chunk_nbytes);
 
     int64_t chunks_in_array[CATERVA_MAX_DIM] = {0};
     for (int i = 0; i < ndim; ++i) {
@@ -1042,7 +1042,7 @@ int caterva_get_slice(caterva_ctx_t *ctx, caterva_array_t *src, int64_t *start,
         for (int i = 0; i < ndim; ++i) {
             buffersize *= chunk_shape[i];
         }
-        uint8_t *buffer = ctx->cfg->alloc(buffersize);
+        uint8_t *buffer = (uint8_t*)ctx->cfg->alloc(buffersize);
         CATERVA_ERROR(caterva_get_slice_buffer(ctx, src, src_start, src_stop, buffer, chunk_shape,
                                                buffersize));
         CATERVA_ERROR(caterva_set_slice_buffer(ctx, buffer, chunk_shape, buffersize, chunk_start,
@@ -1405,7 +1405,7 @@ int extend_shape(caterva_array_t *array, int64_t *new_shape) {
 
     int64_t old_nchunks = array->nchunks;
     // aux array to keep old shapes
-    caterva_array_t *aux = malloc(sizeof (caterva_array_t));
+    caterva_array_t *aux = (caterva_array_t*)malloc(sizeof (caterva_array_t));
     aux->sc = NULL;
     CATERVA_ERROR(caterva_update_shape(aux, ndim, array->shape, array->chunkshape, array->blockshape));
 
@@ -1415,11 +1415,11 @@ int extend_shape(caterva_array_t *array, int64_t *new_shape) {
     if (nchunks != old_nchunks) {
         blosc2_cparams *cparams;
         blosc2_schunk_get_cparams(array->sc, &cparams);
-        void* chunk;
+        uint8_t* chunk;
         int csize;
         int nchunks_;
         for (int i = old_nchunks; i < nchunks; ++i) {
-            chunk = malloc(BLOSC_EXTENDED_HEADER_LENGTH);
+            chunk = (uint8_t*)malloc(BLOSC_EXTENDED_HEADER_LENGTH);
             nchunks_ = blosc2_chunk_zeros(*cparams, array->sc->chunksize, chunk, BLOSC_EXTENDED_HEADER_LENGTH);
             if (nchunks_ < 0) {
                 free(aux);
@@ -1458,7 +1458,7 @@ int extend_shape(caterva_array_t *array, int64_t *new_shape) {
     int64_t nchunk_ndim[CATERVA_MAX_DIM] = {0};
     int chunk_index = (int)old_nchunks;
     // Avoid problems related with index_multidim_to_unidim signature
-    int64_t *new_offsets = malloc(sizeof(int64_t) * nchunks);
+    int64_t *new_offsets = (int64_t*)malloc(sizeof(int64_t) * nchunks);
     int dsize;
     for (int i = 0; i < nchunks; ++i) {
         index_unidim_to_multidim(ndim, chunks_in_array, i, nchunk_ndim);
@@ -1477,7 +1477,7 @@ int extend_shape(caterva_array_t *array, int64_t *new_shape) {
     }
 
     // Cast offsets back to int
-    int *int_offsets = malloc(sizeof(int) * nchunks);
+    int *int_offsets = (int*)malloc(sizeof(int) * nchunks);
     for (int i = 0; i < nchunks; ++i) {
         int_offsets[i] = (int)new_offsets[i];
     }
@@ -1519,7 +1519,7 @@ int shrink_shape(caterva_array_t *array, int64_t *new_shape) {
 
     int64_t old_nchunks = array->nchunks;
     // aux array to keep old shapes
-    caterva_array_t *aux = malloc(sizeof (caterva_array_t));
+    caterva_array_t *aux = (caterva_array_t*)malloc(sizeof (caterva_array_t));
     aux->sc = NULL;
     CATERVA_ERROR(caterva_update_shape(aux, ndim, array->shape, array->chunkshape, array->blockshape));
 
@@ -1528,7 +1528,7 @@ int shrink_shape(caterva_array_t *array, int64_t *new_shape) {
     int64_t nchunks = array->extnitems / array->chunknitems;
 
     // Delete chunks if needed
-    int64_t chunks_in_array[CATERVA_MAX_DIM] = {0};
+    int64_t chunks_in_array[CATERVA_MAX_DIM]{};
     for (int i = 0; i < ndim; ++i) {
         chunks_in_array[i] = array->extshape[i] / array->chunkshape[i];
     }

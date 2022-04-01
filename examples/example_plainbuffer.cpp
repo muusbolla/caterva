@@ -29,7 +29,7 @@ int main() {
         nelem *= shape[i];
     }
     int64_t size = nelem * itemsize;
-    int8_t *data = malloc(size);
+    int8_t *data = (int8_t*)malloc(size);
 
     caterva_config_t cfg = CATERVA_CONFIG_DEFAULTS;
 
@@ -71,7 +71,7 @@ int main() {
         buffer_size *= slice->shape[i];
     }
     buffer_size *= slice->itemsize;
-    buffer = malloc(buffer_size);
+    buffer = (uint8_t*)malloc(buffer_size);
 
     CATERVA_ERROR(caterva_to_buffer(ctx, slice, buffer, buffer_size));
 

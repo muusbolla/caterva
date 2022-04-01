@@ -31,7 +31,7 @@ int main() {
         nbytes *= shape[i];
     }
 
-    DATA_TYPE *src = malloc(nbytes);
+    DATA_TYPE *src = (DATA_TYPE *)malloc(nbytes);
     for (int i = 0; i < nbytes / itemsize; ++i) {
         src[i] = i;
     }
@@ -76,7 +76,7 @@ int main() {
             buffersize *= slice_shape[j];
         }
 
-        DATA_TYPE *buffer = malloc(buffersize);
+        DATA_TYPE *buffer = (DATA_TYPE *)malloc(buffersize);
 
         for (int slice = 0; slice < nslices; ++slice) {
             slice_start[dim] = rand() % shape[dim];

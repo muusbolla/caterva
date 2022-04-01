@@ -103,7 +103,7 @@ void _cutest_parametrize(char* name, void *params, int32_t params_len, int32_t p
     while(cutest_params[i].name != NULL) {
         i++;
     }
-    uint8_t *new_params = malloc(param_size * params_len);
+    uint8_t *new_params = (uint8_t*)malloc(param_size * params_len);
     char *new_name = strdup(name);
     memcpy(new_params, params, param_size * params_len);
     cutest_params[i].name = new_name;

@@ -7,11 +7,11 @@
 # in the COPYING file in the root directory of this source tree).
 # You may select, at your option, one of the above-listed licenses.
 
-file(GLOB SOURCES example_*.c)
+file(GLOB SOURCES example_*.cpp)
 
 foreach(source ${SOURCES})
     get_filename_component(target_name ${source} NAME_WE)
     set(target caterva_${target_name})
-    add_executable(${target} ${target_name}.c)
+    add_executable(${target} ${target_name}.cpp)
     target_link_libraries(${target} caterva_static ${LIBS})
 endforeach(source)

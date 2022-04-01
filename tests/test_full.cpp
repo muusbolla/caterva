@@ -83,7 +83,7 @@ CUTEST_TEST_TEST(full) {
 
     /* Create caterva_array_t with original data */
     caterva_array_t *src;
-    uint8_t *value = malloc(itemsize);
+    uint8_t *value = (uint8_t*)malloc(itemsize);
     switch (itemsize) {
         case 8:
             ((int64_t *) value)[0] = (int64_t) fill_value;
@@ -104,7 +104,7 @@ CUTEST_TEST_TEST(full) {
     CATERVA_TEST_ASSERT(caterva_full(data->ctx, &params, &storage, value, &src));
 
     /* Fill dest array with caterva_array_t data */
-    uint8_t *buffer_dest = malloc( buffersize);
+    uint8_t *buffer_dest = (uint8_t*)malloc( buffersize);
     CATERVA_TEST_ASSERT(caterva_to_buffer(data->ctx, src, buffer_dest, buffersize));
 
     /* Testing */

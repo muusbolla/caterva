@@ -97,7 +97,7 @@ CUTEST_TEST_TEST(set_slice_buffer) {
         buffersize *= shape[i];
     }
 
-    uint8_t *buffer = data->ctx->cfg->alloc(buffersize);
+    uint8_t *buffer = (uint8_t*)data->ctx->cfg->alloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, buffersize / itemsize));
 
     /* Create caterva_array_t with original data */
@@ -109,7 +109,7 @@ CUTEST_TEST_TEST(set_slice_buffer) {
                                            shapes.start, shapes.stop, src));
 
 
-    uint8_t *destbuffer = data->ctx->cfg->alloc((size_t) buffersize);
+    uint8_t *destbuffer = (uint8_t*)data->ctx->cfg->alloc((size_t) buffersize);
 
     /* Fill dest buffer with a slice*/
     CATERVA_TEST_ASSERT(caterva_get_slice_buffer(data->ctx, src, shapes.start, shapes.stop,

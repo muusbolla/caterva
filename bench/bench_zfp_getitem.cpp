@@ -67,13 +67,13 @@ int comp(const char* urlpath) {
     blosc2_remove_urlpath("schunk.cat");
 
     // Get multidimensional parameters and configure Caterva array
-    uint8_t ndim;
+    int8_t ndim;
     int32_t shape[4];
-    int64_t *shape_aux = malloc(8 * sizeof(int64_t));
-    int32_t *chunkshape = malloc(8 * sizeof(int32_t));
-    int32_t *blockshape = malloc(8 * sizeof(int32_t));
+    int64_t *shape_aux = (int64_t*)malloc(8 * sizeof(int64_t));
+    int32_t *chunkshape = (int32_t*)malloc(8 * sizeof(int32_t));
+    int32_t *blockshape = (int32_t*)malloc(8 * sizeof(int32_t));
     uint8_t *smeta;
-    uint32_t smeta_len;
+    int32_t smeta_len;
     if (blosc2_meta_get(schunk, "caterva", &smeta, &smeta_len) < 0) {
         printf("This benchmark only supports Caterva datasets");
         free(shape);

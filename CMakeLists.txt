@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.12)
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0077 NEW)
 
-project(caterva VERSION 0.3.3 LANGUAGES C)
+project(caterva VERSION 0.3.3 LANGUAGES C CXX)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -45,6 +45,7 @@ if(CATERVA_ENABLE_ASAN)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Os -fno-omit-frame-pointer -fsanitize=address")
 endif()
 set(CMAKE_C_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS}")
 
 if(CATERVA_ENABLE_COVERAGE)
     message(STATUS "Coverage is enabled")
@@ -94,7 +95,7 @@ include_directories(${CATERVA_SRC})
 
 include(CTest)
 
-file(GLOB SRC_FILES ${CATERVA_SRC}/*.c)
+file(GLOB SRC_FILES ${CATERVA_SRC}/*.c ${CATERVA_SRC}/*.cpp)
 
 if(CATERVA_SHARED_LIB)
     message(STATUS "Building caterva shared lib")

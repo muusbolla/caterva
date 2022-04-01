@@ -12,7 +12,7 @@
 # include <stdlib.h>
 
 
-int frame_generator(int8_t *data, int8_t ndim, int64_t shape[8], int32_t chunkshape[8],
+int frame_generator(void *data, int8_t ndim, int64_t shape[8], int32_t chunkshape[8],
                     int32_t blockshape[8], int8_t itemsize, int64_t size, char *urlpath) {
 
     caterva_config_t cfg = CATERVA_CONFIG_DEFAULTS;
@@ -53,7 +53,7 @@ int all_eq() {
     }
     int64_t size = nelem * itemsize;
 
-    int8_t *data = malloc(size);
+    int8_t *data = (int8_t*)malloc(size);
     for (int i= 0; i < nelem; i++) {
         data[i] = (int8_t) 22;
     }
@@ -75,7 +75,7 @@ int cyclic() {
     }
     int64_t size = nelem * itemsize;
 
-    int8_t *data = malloc(size);
+    int8_t *data = (int8_t*)malloc(size);
     for (int i= 0; i < nelem; i++) {
         data[i] = (int8_t) i;
     }
@@ -97,7 +97,7 @@ int many_matches() {
     }
     int64_t size = nelem * itemsize;
 
-    int8_t *data = malloc(size);
+    int8_t *data = (int8_t*)malloc(size);
     for (int i = 0; i < nelem; i += 2) {
         data[i] = (int8_t) i;
         data[i + 1] = (int8_t) 2;
@@ -120,7 +120,7 @@ int float_cyclic() {
     }
     int64_t size = nelem * itemsize;
 
-    float *data = malloc(size);
+    float *data = (float*)malloc(size);
     for (int i = 0; i < nelem; i += 2) {
        float j = (float) i;
        data[i] = (j + j / 10 + j / 100);
@@ -144,7 +144,7 @@ int double_same_cells() {
     }
     int64_t size = nelem * itemsize;
 
-    double *data = malloc(size);
+    double *data = (double*)malloc(size);
     for (int i = 0; i < nelem; i += 4) {
        data[i] = 1.5;
        data[i + 1] = 14.7;
@@ -169,7 +169,7 @@ int big_float_frame() {
     }
     int64_t size = nelem * itemsize;
 
-    float *data = malloc(size);
+    float *data = (float*)malloc(size);
     for (int i = 0; i < nelem; i += 4) {
        float j = (float) i;
        data[i] = (float) 2.73;
@@ -198,7 +198,7 @@ int day_month_temp() {
     float temp_min = -20;
     float temp_max = 40;
     srand(time(NULL));
-    float *data = malloc(size);
+    float *data = (float*)malloc(size);
     for (int i = 0; i < nelem / 3; i++) {
        data[i] = (float) (rand() % 31);
        data[i + 1] = (float) (rand() % 12);
@@ -225,7 +225,7 @@ int item_prices() {
 
     float price_min = (float) 1;        // if I choose 0.99 results are less aproppiate
     float price_max = (float) 251;
-    float *data = malloc(size);
+    float *data = (float*)malloc(size);
     int index = 0;
     for (int month = 1; month <= shape[0]; month ++) {               // month (1 to 12)
        for (int store = 1; store <= shape[1]; store ++) {           // store ID (less to more expensive)

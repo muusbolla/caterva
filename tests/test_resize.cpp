@@ -110,14 +110,14 @@ CUTEST_TEST_TEST(resize_shape) {
         shrink_size *= shrink_shape[i];
         extend_size *= extend_shape[i];
     }
-    uint8_t *buffer = data->ctx->cfg->alloc(buffersize);
+    uint8_t *buffer = (uint8_t*)data->ctx->cfg->alloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, buffersize / itemsize));
     /* Create caterva_array_t with original data */
     caterva_array_t *src;
     CATERVA_ERROR(caterva_from_buffer(data->ctx, buffer, buffersize, &params, &storage, &src));
 
     // Get original values in shrinked slice
-    uint8_t *original_buffer = data->ctx->cfg->alloc(shrink_size);
+    uint8_t *original_buffer = (uint8_t*)data->ctx->cfg->alloc(shrink_size);
     int64_t start_shape[CATERVA_MAX_DIM] = {0};
 
     CATERVA_ERROR(caterva_get_slice_buffer(data->ctx, src, start_shape, shrink_shape,
@@ -127,7 +127,7 @@ CUTEST_TEST_TEST(resize_shape) {
     CATERVA_ERROR(caterva_resize(data->ctx, src, shapes.newshape));
 
 
-    uint8_t *shrink_buffer = data->ctx->cfg->alloc((size_t) shrink_size);
+    uint8_t *shrink_buffer = (uint8_t*)data->ctx->cfg->alloc((size_t) shrink_size);
     /* Fill extend buffer with a slice from the new chunks*/
     CATERVA_ERROR(caterva_get_slice_buffer(data->ctx, src, start_shape, shrink_shape,
                                            shrink_buffer, shrink_shape,
@@ -156,7 +156,7 @@ CUTEST_TEST_TEST(resize_shape) {
     }
 
     if (!only_shrink) {
-        uint8_t *extend_buffer = data->ctx->cfg->alloc((size_t) extend_size);
+        uint8_t *extend_buffer = (uint8_t*)data->ctx->cfg->alloc((size_t) extend_size);
         /* Fill extend buffer with a slice from the new chunks*/
         CATERVA_ERROR(caterva_get_slice_buffer(data->ctx, src, start_extend_slice, shapes.newshape,
                                                extend_buffer, extend_shape,

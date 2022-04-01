@@ -111,7 +111,7 @@ CUTEST_TEST_TEST(copy) {
     for (int i = 0; i < params.ndim; ++i) {
         buffersize *= (size_t) params.shape[i];
     }
-    uint8_t *buffer = malloc(buffersize);
+    uint8_t *buffer = (uint8_t*)malloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, (buffersize / itemsize)));
 
     /* Create caterva_array_t with original data */
@@ -174,7 +174,7 @@ CUTEST_TEST_TEST(copy) {
     free(vlmeta.name);
 
 
-    uint8_t *buffer_dest = malloc(buffersize);
+    uint8_t *buffer_dest = (uint8_t*)malloc(buffersize);
     CATERVA_TEST_ASSERT(caterva_to_buffer(data->ctx, dest, buffer_dest, buffersize));
 
     /* Testing */

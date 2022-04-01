@@ -11,10 +11,10 @@
 * Example program demonstrating use of the Blosc plugins from C code.
 *
 * To compile this program:
-* $ gcc example_plugins_filters.c -o example_plugins_filters -lblosc2
+* $ gcc example_plugins_codecs.c -o example_plugins_codecs -lblosc2
 *
 * To run:
-* $ ./example_plugins_filters
+* $ ./example_plugins_codecs
 *
 * from_buffer: 0.0668 s
 * to_buffer: 0.0068 s
@@ -26,25 +26,25 @@
 #include <caterva.h>
 #include <stdio.h>
 #include <blosc2.h>
-#include "../contribs/c-blosc2/plugins/filters/filters-registry.c"
+#include "../contribs/c-blosc2/plugins/codecs/codecs-registry.c"
 
 int main() {
     blosc_timestamp_t t0, t1;
 
     blosc_init();
-    int8_t ndim = 3;
+    int8_t ndim = 2;
     uint8_t itemsize = sizeof(int64_t);
 
-    int64_t shape[] = {745, 400, 350};
-    int32_t chunkshape[] = {150, 100, 150};
-    int32_t blockshape[] = {21, 30, 27};
+    int64_t shape[] = {745, 400};
+    int32_t chunkshape[] = {150, 100};
+    int32_t blockshape[] = {21, 30};
 
     int64_t nbytes = itemsize;
     for (int i = 0; i < ndim; ++i) {
         nbytes *= shape[i];
     }
 
-    int64_t *src = malloc((size_t) nbytes);
+    int64_t *src = (int64_t*)malloc((size_t) nbytes);
     for (int i = 0; i < nbytes / itemsize; ++i) {
         src[i] = (int64_t) i;
     }
@@ -52,13 +52,15 @@ int main() {
     caterva_config_t cfg = CATERVA_CONFIG_DEFAULTS;
     cfg.nthreads = 1;
     /*
-     * Use the NDCELL filter trough its plugin.
-     * NDCELL metainformation: user must specify the parameter meta as the cellshape, so
-     * if in a 3-dim dataset user specifies meta = 4, then cellshape will be 4x4x4.
+     * Use the NDLZ codec trough its plugin.
+     * NDLZ metainformation: - it calls the 4x4 version if meta == 4
+                             - it calls the 8x8 version if meta == 8
     */
-    cfg.filters[4] = BLOSC_FILTER_NDCELL;
-    cfg.filtersmeta[4] = 4;
-    // We could use a codec plugin by setting cfg.compcodec.
+    cfg.compcodec = BLOSC_CODEC_NDLZ;
+    cfg.splitmode = BLOSC_ALWAYS_SPLIT;
+    cfg.compmeta = 4;
+    cfg.complevel = 5;
+    // We could use a filter plugin by setting cfg.filters[].
 
     caterva_ctx_t *ctx;
     caterva_ctx_new(&cfg, &ctx);
@@ -82,7 +84,7 @@ int main() {
     blosc_set_timestamp(&t1);
     printf("from_buffer: %.4f s\n", blosc_elapsed_secs(t0, t1));
 
-    int64_t *buffer = malloc(nbytes);
+    int64_t *buffer = (int64_t*)malloc(nbytes);
     int64_t buffer_size = nbytes;
     blosc_set_timestamp(&t0);
     CATERVA_ERROR(caterva_to_buffer(ctx, arr, buffer, buffer_size));

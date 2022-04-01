@@ -27,12 +27,12 @@ typedef struct {
 } test_shapes_t;
 
 
-CUTEST_TEST_DATA(persistency) {
+CUTEST_TEST_DATA(save) {
     caterva_ctx_t *ctx;
 };
 
 
-CUTEST_TEST_SETUP(persistency) {
+CUTEST_TEST_SETUP(save) {
     caterva_config_t cfg = CATERVA_CONFIG_DEFAULTS;
     cfg.nthreads = 2;
     cfg.compcodec = BLOSC_BLOSCLZ;
@@ -41,27 +41,24 @@ CUTEST_TEST_SETUP(persistency) {
     // Add parametrizations
     CUTEST_PARAMETRIZE(itemsize, uint8_t, CUTEST_DATA(1, 2, 4, 8));
     CUTEST_PARAMETRIZE(shapes, test_shapes_t, CUTEST_DATA(
-            {0, {0}, {0}, {0}}, // 0-dim
+            // {0, {0}, {0}, {0}}, // 0-dim
              {1, {10}, {7}, {2}}, // 1-idim
              {2, {100, 100}, {20, 20}, {10, 10}},
              {3, {100, 55, 123}, {31, 5, 22}, {4, 4, 4}},
              {3, {100, 0, 12}, {31, 0, 12}, {10, 0, 12}},
-             {4, {50, 160, 31, 12}, {25, 20, 20, 10}, {5, 5, 5, 10}},
-             {5, {1, 1, 1024, 1, 1}, {1, 1, 500, 1, 1}, {1, 1, 200, 1, 1}},
-             {6, {5, 1, 200, 3, 1, 2}, {5, 1, 50, 2, 1, 2}, {2, 1, 20, 2, 1, 2}}
     ));
     CUTEST_PARAMETRIZE(backend, _test_backend, CUTEST_DATA(
-            {true, true},
-            {false, true},
+            {true, false},
+            {false, false},
     ));
 }
 
-CUTEST_TEST_TEST(persistency) {
+CUTEST_TEST_TEST(save) {
     CUTEST_GET_PARAMETER(backend, _test_backend);
     CUTEST_GET_PARAMETER(shapes, test_shapes_t);
     CUTEST_GET_PARAMETER(itemsize, uint8_t);
 
-    char* urlpath = "test_persistency.b2frame";
+    char* urlpath = "test_save.b2frame";
 
     caterva_remove(data->ctx, urlpath);
 
@@ -73,22 +70,19 @@ CUTEST_TEST_TEST(persistency) {
     }
 
     caterva_storage_t storage = {0};
-    if (backend.persistent) {
-        storage.urlpath = urlpath;
-    }
+    storage.urlpath = NULL;
     storage.sequencial = backend.sequential;
     for (int i = 0; i < params.ndim; ++i) {
         storage.chunkshape[i] = shapes.chunkshape[i];
         storage.blockshape[i] = shapes.blockshape[i];
     }
 
-
     /* Create original data */
     int64_t buffersize = itemsize;
     for (int i = 0; i < params.ndim; ++i) {
         buffersize *= shapes.shape[i];
     }
-    uint8_t *buffer = malloc(buffersize);
+    uint8_t *buffer = (uint8_t*)malloc(buffersize);
     CUTEST_ASSERT("Buffer filled incorrectly", fill_buf(buffer, itemsize, buffersize / itemsize));
 
     /* Create caterva_array_t with original data */
@@ -96,11 +90,12 @@ CUTEST_TEST_TEST(persistency) {
     CATERVA_TEST_ASSERT(caterva_from_buffer(data->ctx, buffer, buffersize, &params, &storage,
                                             &src));
 
+    CATERVA_TEST_ASSERT(caterva_save(data->ctx, src, urlpath));
     caterva_array_t *dest;
     CATERVA_TEST_ASSERT(caterva_open(data->ctx, urlpath, &dest));
 
     /* Fill dest array with caterva_array_t data */
-    uint8_t *buffer_dest = malloc(buffersize);
+    uint8_t *buffer_dest = (uint8_t*)malloc(buffersize);
     CATERVA_TEST_ASSERT(caterva_to_buffer(data->ctx, dest, buffer_dest, buffersize));
 
     /* Testing */
@@ -123,10 +118,10 @@ CUTEST_TEST_TEST(persistency) {
 }
 
 
-CUTEST_TEST_TEARDOWN(persistency) {
+CUTEST_TEST_TEARDOWN(save) {
     caterva_ctx_free(&data->ctx);
 }
 
 int main() {
-    CUTEST_TEST_RUN(persistency);
+    CUTEST_TEST_RUN(save);
 }

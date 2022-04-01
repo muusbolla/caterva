@@ -36,7 +36,7 @@ void index_multidim_to_unidim(int64_t *index, int8_t ndim, int64_t *strides, int
 // big <-> little-endian and store it in a memory position.  Sizes supported: 1, 2, 4, 8 bytes.
 void swap_store(void *dest, const void *pa, int size) {
     uint8_t *pa_ = (uint8_t *) pa;
-    uint8_t *pa2_ = malloc((size_t) size);
+    uint8_t *pa2_ = (uint8_t *)malloc((size_t) size);
     int i = 1; /* for big/little endian detection */
     char *p = (char *) &i;
 
@@ -79,7 +79,7 @@ int32_t serialize_meta(uint8_t ndim, int64_t *shape, const int32_t *chunkshape,
     // Allocate space for Caterva metalayer
     int32_t max_smeta_len = 1 + 1 + 1 + (1 + ndim * (1 + sizeof(int64_t))) +
                             (1 + ndim * (1 + sizeof(int32_t))) + (1 + ndim * (1 + sizeof(int32_t)));
-    *smeta = malloc((size_t) max_smeta_len);
+    *smeta = (uint8_t*)malloc((size_t) max_smeta_len);
     CATERVA_ERROR_NULL(smeta);
     uint8_t *pmeta = *smeta;
 
