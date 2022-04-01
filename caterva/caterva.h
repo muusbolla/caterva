@@ -20,12 +20,8 @@
 #define CATERVA_CATERVA_H_
 
 #include <blosc2.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <cstdio>
+#include <cstdlib>
 
 /* Version numbers */
 #define CATERVA_VERSION_MAJOR 0         /* for major interface/format changes  */
@@ -656,9 +652,5 @@ int caterva_meta_update(caterva_ctx_t *ctx, caterva_array_t *array,
  * @return An error code
  */
 int caterva_resize(caterva_ctx_t *ctx, caterva_array_t *array, int64_t *new_shape);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif  // CATERVA_CATERVA_H_
