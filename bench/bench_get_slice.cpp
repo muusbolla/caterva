@@ -11,14 +11,14 @@
 
 #define DATA_TYPE int64_t
 
-# include <caterva.h>
-
+#include <caterva.h>
+#include <caterva_templates.hpp>
+constexpr int ndim = 3;
 int main() {
     blosc_timestamp_t t0, t1, t2;
 
     int nslices = 100;
 
-    int8_t ndim = 3;
     uint8_t itemsize = sizeof(DATA_TYPE);
     
     int64_t shape[] = {1250, 745, 400};
@@ -49,7 +49,7 @@ int main() {
         params.shape[i] = shape[i];
     }
 
-    caterva_storage_t storage = {0};
+    caterva_storage_t storage{};
     for (int i = 0; i < ndim; ++i) {
         storage.chunkshape[i] = chunkshape[i];
         storage.blockshape[i] = blockshape[i];
@@ -81,7 +81,7 @@ int main() {
         for (int slice = 0; slice < nslices; ++slice) {
             slice_start[dim] = rand() % shape[dim];
             slice_stop[dim] = slice_start[dim] + 1;
-            CATERVA_ERROR(caterva_get_slice_buffer(ctx, arr, slice_start, slice_stop, buffer, slice_shape, buffersize));
+            CATERVA_ERROR(caterva_get_slice_buffer<ndim>(ctx, arr, slice_start, slice_stop, buffer, slice_shape, buffersize));
         }
         free(buffer);
         blosc_set_timestamp(&t2);

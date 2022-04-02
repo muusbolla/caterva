@@ -103,6 +103,10 @@ static char *print_error(int rc) {
 /* The maximum number of metalayers for caterva arrays */
 #define CATERVA_MAX_METALAYERS (BLOSC2_MAX_METALAYERS - 1)
 
+// 1Kbit of maskout space should allow us to avoid dynamic allocation most of the time
+// must be a multiple of 64
+#define STACK_MASKOUT_BITS 1024
+
 /**
  * @brief Configuration parameters used to create a caterva context.
  */

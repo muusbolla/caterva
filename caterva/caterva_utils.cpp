@@ -9,6 +9,7 @@
  * You may select, at your option, one of the above-listed licenses.
  */
 #include <caterva_utils.h>
+#include <caterva_utils_templates.hpp>
 
 void index_unidim_to_multidim(int8_t ndim, int64_t *shape, int64_t i, int64_t *index) {
     int64_t strides[CATERVA_MAX_DIM];

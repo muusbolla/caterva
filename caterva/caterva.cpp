@@ -443,10 +443,6 @@ int caterva_to_buffer(caterva_ctx_t *ctx, caterva_array_t *array, void *buffer,
     return CATERVA_SUCCEED;
 }
 
-// 1Kbit of maskout space should allow us to avoid dynamic allocation most of the time
-// must be a multiple of 64
-#define STACK_MASKOUT_BITS 1024 
-
 // Only for internal use: It is used for getting slices.
 int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize, int64_t *start,
                         int64_t *stop, int64_t *shape, caterva_array_t *array) {
