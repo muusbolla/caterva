@@ -660,31 +660,31 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                 slice_shape[i] = slice_stop[i] - slice_start[i];
             }
 
-            uint8_t *src = &buffer_b[0];
-            int64_t *src_pad_shape = shape;
-
-            int64_t src_start[CATERVA_MAX_DIM] = {0};
-            int64_t src_stop[CATERVA_MAX_DIM] = {0};
-            for (int i = 0; i < ndim; ++i) {
-                src_start[i] = slice_start[i] - start[i];
-                src_stop[i] = slice_stop[i] - start[i];
-            }
-
-            uint8_t *dst = &data[nblock * array->blocknitems * array->itemsize];
-            int64_t dst_pad_shape[CATERVA_MAX_DIM];
-            for (int i = 0; i < ndim; ++i) {
-                dst_pad_shape[i] = array->blockshape[i];
-            }
+            uint8_t *dst = &buffer_b[0];
+            int64_t *dst_pad_shape = shape;
 
             int64_t dst_start[CATERVA_MAX_DIM] = {0};
             int64_t dst_stop[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                dst_start[i] = slice_start[i] - block_start[i];
-                dst_stop[i] = dst_start[i] + slice_shape[i];
+                dst_start[i] = slice_start[i] - start[i];
+                dst_stop[i] = slice_stop[i] - start[i];
             }
 
-            caterva_copy_buffer(ndim, array->itemsize, dst, dst_pad_shape, dst_start, dst_stop,
-                                src, src_pad_shape, src_start);
+            uint8_t *src = &data[nblock * array->blocknitems * array->itemsize];
+            int64_t src_pad_shape[CATERVA_MAX_DIM];
+            for (int i = 0; i < ndim; ++i) {
+                src_pad_shape[i] = array->blockshape[i];
+            }
+
+            int64_t src_start[CATERVA_MAX_DIM] = {0};
+            int64_t src_stop[CATERVA_MAX_DIM] = {0};
+            for (int i = 0; i < ndim; ++i) {
+                src_start[i] = slice_start[i] - block_start[i];
+                src_stop[i] = src_start[i] + slice_shape[i];
+            }
+
+            caterva_copy_buffer(ndim, array->itemsize, src, src_pad_shape, src_start, src_stop,
+                                dst, dst_pad_shape, dst_start);
         }
     }
     if (blocks_per_chunk > STACK_MASKOUT_BITS) {
