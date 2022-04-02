@@ -622,9 +622,9 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                 block_start[i] += chunk_start[i];
                 block_stop[i] += chunk_start[i];
 
-                if (block_start[i] > chunk_stop[i]) {
-                    block_start[i] = chunk_stop[i];
-                }
+                // if (block_start[i] > chunk_stop[i]) {
+                //     block_start[i] = chunk_stop[i];
+                // }
                 if (block_stop[i] > chunk_stop[i]) {
                     block_stop[i] = chunk_stop[i];
                 }
