@@ -5,19 +5,42 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "(gdb) caterva_bench_get_slice",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/gcc-linux-debug/bench/caterva_bench_get_slice",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description":  "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
             "type": "lldb",
             "request": "launch",
             "name": "caterva_test_roundtrip",
-            "program": "${workspaceFolder}/out/build/clang-linux-debug/tests/caterva_test_roundtrip",
+            "program": "${workspaceFolder}/build/clang-linux-debug/tests/caterva_test_roundtrip",
             "args": [],
             "cwd": "${workspaceFolder}"
         },
-
         {
             "type": "lldb",
             "request": "launch",
             "name": "caterva_bench_get_slice",
-            "program": "${workspaceFolder}/out/build/clang-linux-debug/bench/caterva_bench_get_slice",
+            "program": "${workspaceFolder}/build/clang-linux-debug/bench/caterva_bench_get_slice",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
