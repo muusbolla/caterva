@@ -461,9 +461,6 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
     uint64_t stack_maskout[STACK_MASKOUT_BITS / 64];
     uint8_t *buffer_b = (uint8_t *) buffer;
-    int64_t *buffer_start = start;
-    int64_t *buffer_stop = stop;
-    int64_t *buffer_shape = shape;
 
     int8_t ndim = array->ndim;
 
@@ -500,23 +497,24 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
     int64_t update_nchunks = 1;
     for (int i = 0; i < ndim; ++i) {
-        // round buffer_start down to nearest multiple of chunkshape
-        int64_t pos = buffer_start[i] - (buffer_start[i] % array->chunkshape[i]);
+        // round start down to nearest multiple of chunkshape
+        int64_t pos = start[i] - (start[i] % array->chunkshape[i]);
         update_start[i] = pos / array->chunkshape[i];
 
-        // round buffer_stop up to nearest multiple of chunkshape
-        pos = buffer_stop[i] + array->chunkshape[i] - 1 - (buffer_stop[i] + array->chunkshape[i] - 1) % array->chunkshape[i];
+        // round stop up to nearest multiple of chunkshape
+        pos = stop[i] + array->chunkshape[i] - 1 - (stop[i] + array->chunkshape[i] - 1) % array->chunkshape[i];
         update_shape[i] = pos / array->chunkshape[i] - update_start[i];
 
         update_nchunks *= update_shape[i];
     }
 
-    int64_t nblocks = array->extchunknitems / array->blocknitems;
+    // number of blocks per chunk
+    int64_t blocks_per_chunk = array->extchunknitems / array->blocknitems;
     uint64_t *block_maskout;
-    if (nblocks <= STACK_MASKOUT_BITS) {  // in most cases we won't need to dynamically allocate
+    if (blocks_per_chunk <= STACK_MASKOUT_BITS) {  // in most cases we won't need to dynamically allocate
         block_maskout = stack_maskout;
     } else {
-        int nmaskoutbits = (nblocks + 63) & (-64);  // round up to next multiple of 64
+        int nmaskoutbits = (blocks_per_chunk + 63) & (-64);  // round up to next multiple of 64
         int nmaskoutelems = nmaskoutbits / 64;
         uint64_t *block_maskout = (uint64_t*)ctx->cfg->alloc(nmaskoutelems * 8);
         CATERVA_ERROR_NULL(block_maskout);
@@ -538,21 +536,22 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             chunk_start[i] = nchunk_ndim[i] * array->chunkshape[i];
             chunk_stop[i] = chunk_start[i] + array->chunkshape[i];
             if (chunk_stop[i] > array->shape[i]) {
+                
                 chunk_stop[i] = array->shape[i];
             }
         }
-        bool chunk_empty = false;
-        for (int i = 0; i < ndim; ++i) {
-            chunk_empty |= ((chunk_stop[i] <= buffer_start[i]) | (chunk_start[i] >= buffer_stop[i]));
-        }
-        if (chunk_empty) {
-            continue;
-        }
+        // bool chunk_empty = false;
+        // for (int i = 0; i < ndim; ++i) {
+        //     chunk_empty |= ((chunk_stop[i] <= start[i]) | (chunk_start[i] >= stop[i]));
+        // }
+        // if (chunk_empty) {
+        //     continue;
+        // }
 
         uint64_t maskVal = 0;
         int64_t maskout_offset = 0;
         int64_t maskout_index = 0;
-        for (int nblock = 0; nblock < nblocks; ++nblock) {
+        for (int nblock = 0; nblock < blocks_per_chunk; ++nblock) {
             if (maskout_offset == 64) {
                 block_maskout[maskout_index] = maskVal;
                 maskout_offset = 0;
@@ -590,7 +589,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
         block_maskout[maskout_index] = maskVal;
 
-        if (blosc2_set_maskout_bitmask(array->sc->dctx, block_maskout, nblocks) !=
+        if (blosc2_set_maskout_bitmask(array->sc->dctx, block_maskout, blocks_per_chunk) !=
             BLOSC2_ERROR_SUCCESS) {
             CATERVA_TRACE_ERROR("Error setting the maskout");
             CATERVA_ERROR(CATERVA_ERR_BLOSC_FAILED);
@@ -604,7 +603,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
         // Iterate over blocks
 
-        for (int nblock = 0; nblock < nblocks; ++nblock) {
+        for (int nblock = 0; nblock < blocks_per_chunk; ++nblock) {
 
             // skip known empty blocks
             if (block_maskout[nblock / 64] & (1ULL << (nblock % 64))) {
@@ -638,8 +637,8 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             // compute the start of the slice inside the block
             int64_t slice_start[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                if (block_start[i] < buffer_start[i]) {
-                    slice_start[i] = buffer_start[i] - block_start[i];
+                if (block_start[i] < start[i]) {
+                    slice_start[i] = start[i] - block_start[i];
                 } else {
                     slice_start[i] = 0;
                 }
@@ -648,8 +647,8 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
             int64_t slice_stop[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                if (block_stop[i] > buffer_stop[i]) {
-                    slice_stop[i] = block_shape[i] - (block_stop[i] - buffer_stop[i]);
+                if (block_stop[i] > stop[i]) {
+                    slice_stop[i] = block_shape[i] - (block_stop[i] - stop[i]);
                 } else {
                     slice_stop[i] = block_stop[i] - block_start[i];
                 }
@@ -662,13 +661,13 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             }
 
             uint8_t *src = &buffer_b[0];
-            int64_t *src_pad_shape = buffer_shape;
+            int64_t *src_pad_shape = shape;
 
             int64_t src_start[CATERVA_MAX_DIM] = {0};
             int64_t src_stop[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                src_start[i] = slice_start[i] - buffer_start[i];
-                src_stop[i] = slice_stop[i] - buffer_start[i];
+                src_start[i] = slice_start[i] - start[i];
+                src_stop[i] = slice_stop[i] - start[i];
             }
 
             uint8_t *dst = &data[nblock * array->blocknitems * array->itemsize];
@@ -688,7 +687,7 @@ int caterva_blosc_get_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
                                 src, src_pad_shape, src_start);
         }
     }
-    if (nblocks > STACK_MASKOUT_BITS) {
+    if (blocks_per_chunk > STACK_MASKOUT_BITS) {
         ctx->cfg->free(block_maskout);
     }
 
@@ -711,9 +710,6 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
     }
 
     uint8_t *buffer_b = (uint8_t *) buffer;
-    int64_t *buffer_start = start;
-    int64_t *buffer_stop = stop;
-    int64_t *buffer_shape = shape;
 
     int8_t ndim = array->ndim;
 
@@ -759,12 +755,12 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
     int64_t update_nchunks = 1;
     for (int i = 0; i < ndim; ++i) {
-        // round buffer_start down to nearest multiple of chunkshape
-        int64_t pos = buffer_start[i] - (buffer_start[i] % array->chunkshape[i]);
+        // round start down to nearest multiple of chunkshape
+        int64_t pos = start[i] - (start[i] % array->chunkshape[i]);
         update_start[i] = pos / array->chunkshape[i];
 
-        // round buffer_stop up to nearest multiple of chunkshape
-        pos = buffer_stop[i] + array->chunkshape[i] - 1 - (buffer_stop[i] + array->chunkshape[i] - 1) % array->chunkshape[i];
+        // round stop up to nearest multiple of chunkshape
+        pos = stop[i] + array->chunkshape[i] - 1 - (stop[i] + array->chunkshape[i] - 1) % array->chunkshape[i];
         update_shape[i] = pos / array->chunkshape[i] - update_start[i];
 
         update_nchunks *= update_shape[i];
@@ -791,19 +787,19 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
         }
         bool chunk_empty = false;
         for (int i = 0; i < ndim; ++i) {
-            chunk_empty |= (chunk_stop[i] <= buffer_start[i] || chunk_start[i] >= buffer_stop[i]);
+            chunk_empty |= (chunk_stop[i] <= start[i] || chunk_start[i] >= stop[i]);
         }
         if (chunk_empty) {
             continue;
         }
 
-        int64_t nblocks = array->extchunknitems / array->blocknitems;
+        int64_t blocks_per_chunk = array->extchunknitems / array->blocknitems;
 
         // Check if all the chunk is going to be updated and avoid the decompression
         bool decompress_chunk = false;
         for (int i = 0; i < ndim; ++i) {
             decompress_chunk |=
-                (chunk_start[i] < buffer_start[i] || chunk_stop[i] > buffer_stop[i]);
+                (chunk_start[i] < start[i] || chunk_stop[i] > stop[i]);
         }
 
         if (decompress_chunk) {
@@ -819,7 +815,7 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
         // Iterate over blocks
 
-        for (int nblock = 0; nblock < nblocks; ++nblock) {
+        for (int nblock = 0; nblock < blocks_per_chunk; ++nblock) {
             int64_t nblock_ndim[CATERVA_MAX_DIM] = {0};
             index_unidim_to_multidim(ndim, blocks_in_chunk, nblock, nblock_ndim);
 
@@ -856,8 +852,8 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             // compute the start of the slice inside the block
             int64_t slice_start[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                if (block_start[i] < buffer_start[i]) {
-                    slice_start[i] = buffer_start[i] - block_start[i];
+                if (block_start[i] < start[i]) {
+                    slice_start[i] = start[i] - block_start[i];
                 } else {
                     slice_start[i] = 0;
                 }
@@ -866,8 +862,8 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
 
             int64_t slice_stop[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                if (block_stop[i] > buffer_stop[i]) {
-                    slice_stop[i] = block_shape[i] - (block_stop[i] - buffer_stop[i]);
+                if (block_stop[i] > stop[i]) {
+                    slice_stop[i] = block_shape[i] - (block_stop[i] - stop[i]);
                 } else {
                     slice_stop[i] = block_stop[i] - block_start[i];
                 }
@@ -880,13 +876,13 @@ int caterva_blosc_set_slice(caterva_ctx_t *ctx, void *buffer, int64_t buffersize
             }
 
             uint8_t *src = &buffer_b[0];
-            int64_t *src_pad_shape = buffer_shape;
+            int64_t *src_pad_shape = shape;
 
             int64_t src_start[CATERVA_MAX_DIM] = {0};
             int64_t src_stop[CATERVA_MAX_DIM] = {0};
             for (int i = 0; i < ndim; ++i) {
-                src_start[i] = slice_start[i] - buffer_start[i];
-                src_stop[i] = slice_stop[i] - buffer_start[i];
+                src_start[i] = slice_start[i] - start[i];
+                src_stop[i] = slice_stop[i] - start[i];
             }
 
             uint8_t *dst = &data[nblock * array->blocknitems * array->itemsize];
