@@ -1,4 +1,5 @@
 #pragma once
+#include <blosc2.h>
 #include <caterva.h>
 #include <caterva_utils_templates.hpp>
 
@@ -281,5 +282,27 @@ int caterva_get_slice_buffer(caterva_ctx_t *ctx,
     }
     CATERVA_ERROR(caterva_blosc_get_slice<ndim>(ctx, buffer, buffersize, start, stop, buffershape, array));
 
+    return CATERVA_SUCCEED;
+}
+
+template<int ndim>
+int caterva_to_buffer(caterva_ctx_t *ctx, caterva_array_t *array, void *buffer,
+                      int64_t buffersize) {
+    CATERVA_ERROR_NULL(ctx);
+    CATERVA_ERROR_NULL(array);
+    CATERVA_ERROR_NULL(buffer);
+
+    if (buffersize < (int64_t) array->nitems * array->itemsize) {
+        CATERVA_ERROR(CATERVA_ERR_INVALID_ARGUMENT);
+    }
+
+    if (array->nitems == 0) {
+        return CATERVA_SUCCEED;
+    }
+
+    int64_t start[CATERVA_MAX_DIM] = {0};
+    int64_t *stop = array->shape;
+    CATERVA_ERROR(caterva_get_slice_buffer<ndim>(ctx, array, start, stop,
+                                           buffer, array->shape, buffersize));
     return CATERVA_SUCCEED;
 }
